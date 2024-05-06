@@ -32,7 +32,10 @@ end
 function draw(t,u,y,e)
     % Plot graphs
     plot(t,[u; y; abs(e)]);
+    % Title
+    title("Explicit-Euler")
     % Lables
-
+    xlabel("t")
     % Legend
+    legend("Approximation", "Analytical solution", "Absolute error")
 end
