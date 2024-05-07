@@ -1,5 +1,5 @@
 function u1 = ForwEulerOneStep(f, h, t0, u0)
-% Returns y(t0 + h), y_dot(t0 + h)
+% Returns u1
 %
 % Parameters
 % f = matlab function, dgl(t,y)

@@ -1,5 +1,5 @@
 function [t, z] = SimulationEuler(Vektorfeld, tspan, x0)
-% Returns y(t,y) and y_dot where y solves f
+% Returns [t, z] where z(t) solves Vektorfeld
 %
 % Parameters
 % Vektorfeld = matlab function, dgl(t,y)
