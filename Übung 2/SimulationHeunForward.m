@@ -3,9 +3,10 @@ function [t, u] = SimulationHeunForward(Vektorfeld, tspan, y0)
 %
 % Parameters
 % Vektorfeld = matlab function, dgl(t,y)
-% tspan = t0:stepsize:tf = timeintervall
-% x0 = initial condition at t0
+% tspan = t0:stepsize:tend = timeintervall
+% y0 = initial condition at t0
     
+    % Setup
     t = tspan;
 
     h = tspan(2)-tspan(1);
@@ -17,15 +18,12 @@ function [t, u] = SimulationHeunForward(Vektorfeld, tspan, y0)
     u(:,1) = u0;
 
     for i = 2:length(tspan)
-
-        % Display progress in %
-        % if mod(i,100000) == 0
-        %     disp(i/length(tspan) * 100);
-        % end
-
+        % Approximate
         t1 = t0 + h;
         l1 = u0 + h*f(t0, u0);
         u(:,i) = u0 + 0.5 * h * (f(t0, u0) + f(t1, l1));
+
+        % Setup for next iteration
         t0 = t0 + h;
         u0 = u(:,i);
     end

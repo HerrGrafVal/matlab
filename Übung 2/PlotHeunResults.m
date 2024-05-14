@@ -24,15 +24,15 @@ xlabel("t", "Interpreter", "latex");
 for i = h(:,start:finish)
     % Describe IVP
     Vektorfeld = @dgl;
-    ts = 0; 
-    tf = 8;
+    tstart = 0; 
+    tend = 4;
     stepsize = i{1};
     
     % Prepare parameters for function call
     t0 = 1;
     y0 = 2;
-    tspanb = ts:stepsize:t0;
-    tspanf = t0:stepsize:tf;
+    tspanb = tstart:stepsize:t0;
+    tspanf = t0:stepsize:tend;
         
     % Perform approximation
     [t_b, u_b] = SimulationHeunBackward(Vektorfeld, tspanb, y0);
@@ -43,8 +43,9 @@ for i = h(:,start:finish)
 end
 
 % Plot analytical solution
-t = ts:h_vec(1):tf;
+t = tstart:h_vec(1):tend;
 plot(t, sol(t), "DisplayName", 'y(t) Analytische L\"osung')
+plot(t0,y0, "xk", "DisplayName", "Startwert")
 
 function y_dot = dgl(t,y)
     % Defines differential equation
