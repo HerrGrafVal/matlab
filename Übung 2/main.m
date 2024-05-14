@@ -4,27 +4,18 @@ h_vec = exp(linspace(log(10^-4), log(10^0), 10));
 h = [h_vec; zeros(size(h_vec))];
 index = 1;
 
-% Label plot for e(h)
-name = ["Verfahren von Heun"; "$\dot{y}(t) = y(t) + t$"];
-title(name, "Interpreter", "latex");
-ylabel("e(h)", "Interpreter", "latex");
-hold on;
-lgd = legend();
-set(lgd, "Interpreter", "latex");
-xlabel("$ln(h)$", "Interpreter", "latex");
-
 for i = h(1,:)
     % Describe IVP
     Vektorfeld = @dgl;
-    ts = 0; 
-    tf = 8;
+    tstart = 0; 
+    tend = 8;
     stepsize = i;
     
     % Prepare parameters for function call
     t0 = 1;
     y0 = 2;
-    tspanb = ts:stepsize:t0;
-    tspanf = t0:stepsize:tf;
+    tspanb = tstart:stepsize:t0;
+    tspanf = t0:stepsize:tend;
         
     % Perform approximation
     [t_b, u_b] = SimulationHeunBackward(Vektorfeld, tspanb, y0);
@@ -43,7 +34,14 @@ end
 
 % Plot e(h)
 log_h = log(h(1,:));
-plot(log_h, h(2,:), "xr", "DisplayName", 'e(h) Maximum error per stepwidth')
+plot(log_h, h(2,:), "x")
+
+% Label plot for e(h)
+name = ["Verfahren von Heun"; "$\dot{y}(t) = y(t) + t$"];
+title(name, "Interpreter", "latex");
+ylabel("e(h)", "Interpreter", "latex");
+xlabel("$ln(h)$", "Interpreter", "latex");
+legend('e(h) Gr\"o\ss ter Fehler pro Schrittweite', "Interpreter", "latex");
 
 function y_dot = dgl(t,y)
     % Defines differential equation
