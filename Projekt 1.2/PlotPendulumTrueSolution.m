@@ -64,6 +64,7 @@ if USE_CACHED_ANALYTICAL_SOLUTION
         sol = readmatrix("Analytical Solution.csv");
         t = sol(1,:);
         x = sol(2:end, :);
+        disp("Saved solution found! If you wish to recalculate PendulumTrueSolution adjust USE_CACHED_ANALYTICAL_SOLUTION in PlotPendulumTrueSolution.m line 7 to false.")
     catch
         disp("No saved solution found! Please adjust USE_CACHED_ANALYTICAL_SOLUTION in PlotPendulumTrueSolution.m line 7 to false.")
     end
@@ -86,8 +87,3 @@ function x_dot = dgl(t,x)
     x_dot = [x(2); -g/l * sin(x(1))];
 end
 
-function [x] = PendulumTrueSolution(t, x0, l , g)
-    % Analytical solution for dgl(t,x) above, source wikipedia
-    x(1, :) = 2 * atan(tan(x0(1) / 2) * jacobiCN(sqrt(g/l) * t, sin(x0(1) / 2)));
-    x(2, :) = -1 * sqrt(g/l) * sin(x0(1)) * jacobiSD(sqrt(g/l) * t, sin(x0(1) / 2));
-end

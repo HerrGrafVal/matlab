@@ -5,7 +5,7 @@ g = 9.81;
 l = 1;
 
 % Stepsizes to use in approximation
-h = [{1; "1 m"}, {10^-1; "$10^{-1}$ m"}, {10^-2; "$10^{-2}$ m"}, {10^-3; "$10^{-3}$ m"}];
+h = [{1; "1 m"}, {10^-1; "$10^{-1}$ m"}, {10^-2; "$10^{-2}$ m"}, {10^-3; "$10^{-3}$ m"}, {10^-4; "$10^{-4}$ m"}, {10^-5; "$10^{-5}$ m"}];
 
 % Describe IVP
 Vektorfeld = @dgl;
@@ -13,6 +13,7 @@ t0 = 0;
 tf = 1;
 phi0 = pi/2;
 phi_dot0 = 0;
+global x0
 x0 = [phi0; phi_dot0];
 
 % --------------------------------------------------------------------------
@@ -33,6 +34,7 @@ e_max = subplot(3,1,2);
 title("Maxima des globalen Fehlers pro Schrittweite", "Interpreter", "latex");
 xlabel("$log_{10}(h)$", "Interpreter", "latex");
 ylabel("$max_t|e(t)|$", "Interpreter", "latex");
+set(e_max, "XDir", "reverse")
 hold(e_max, "on");
 
 % Create and label subplot for local error 
@@ -48,7 +50,7 @@ hold(e_loc, "on");
 % --------------------------------------------------------------------------
 
 % Using cache for PendulumTrueSolution to prevent multiple executions of
-% the same calculation
+% the same calculation (as smaller stepsizes by factor 10 always include bigger ones)
 global TrueSolution
 TrueSolution = memoize(@PendulumTrueSolution);
 
@@ -63,28 +65,56 @@ for i = h
     tspan = t0:stepsize:tf;
     
     % Perform approximation
-    % Write output to [, z] since tspan is known
     [tspan, z] = SimulationEuler(Vektorfeld, tspan, x0);
 
-    % Calculate global error 
-    x_with_current_stepsize = TrueSolution(tspan, x0, l, g);
-    phi_with_current_stepsize = x_with_current_stepsize(1,:);
-    e = abs(phi_with_current_stepsize - z(1,:));
+    % Calculate global error
+    if index == 1
+        % PendulumTrueSolution() doesn't work for t = [0, 1]
+        % Instead only the first and last value of PendulumTrueSolution
+        % with tspan = 0:0.1:1 are being used
+        x_with_sufficient_stepsize = TrueSolution(0:0.1:1, x0, l, g);
+        phi_with_current_stepsize = [x_with_sufficient_stepsize(1,1), x_with_sufficient_stepsize(1,end)];
+        e = abs(phi_with_current_stepsize - z(1,:));
+    else 
+        x_with_current_stepsize = TrueSolution(tspan, x0, l, g);
+        phi_with_current_stepsize = x_with_current_stepsize(1,:);
+        e = abs(phi_with_current_stepsize - z(1,:));
+    end    
 
     % Calculate local error
-    tau = LocalError(tspan,stepsize,z(1,:));
+    tau = LocalError(tspan,stepsize,z,TrueSolution);
 
     % Plot global error over time
+    % Since stepsize 1 corresponds to global error [0, e(1)] and
+    % log10(0) = -inf this stepsize is rendered differently
     axes(e_time);
-    plot(tspan, log10(e), "DisplayName", "e(t) Schrittweite " + i{2})
+    if index == 1
+        plot(tspan, log10(e), "x", "DisplayName", "e(t) Schrittweite " + i{2})
+    else
+        plot(tspan, log10(e), "DisplayName", "e(t) Schrittweite " + i{2})
+    end
+
+    % Note: By changing line 149 to: 
+    % tau = [0];
+    % And changing line 152 to:
+    % for i = 1:length(t)
+    % You can remove the following if/else statement and instead call:
+    % plot(tspan, tau, "DisplayName", "$\tau$(t) Schrittweite " + i{2})
+    % In all iterations, but since tau(0,h) = 0 for all h
+    % We prefer to render local errors as follows
+
+    % Plot local error over time
+    axes(e_loc);
+    if index == 1
+        plot(tspan(2:end), tau, "x", "DisplayName", "$\tau$(t) Schrittweite " + i{2})
+    else
+        plot(tspan(2:end), tau, "DisplayName", "$\tau$(t) Schrittweite " + i{2})
+    end
 
     % Save maximum global error
     h{3,index} = max(e);
     index = index + 1;
 
-    % Plot local error over time
-    axes(e_loc);
-    plot(tspan, tau, "DisplayName", "$\tau$(t) Schrittweite " + i{2})
 end
 
 % --------------------------------------------------------------------------
@@ -102,32 +132,37 @@ function x_dot = dgl(t,x)
     x_dot = [x(2); -g/l * sin(x(1))];
 end
 
-function [x] = PendulumTrueSolution(t, x0, l , g)
-    % Analytical solution for dgl(t,x) above
-    % Source: https://de.wikipedia.org/wiki/Mathematisches_Pendel
-    x(1, :) = 2 * atan(tan(x0(1) / 2) * jacobiCN(sqrt(g/l) * t, sin(x0(1) / 2)));
-    % x(2, :) = -1 * sqrt(g/l) * sin(x0(1)) * jacobiSD(sqrt(g/l) * t, sin(x0(1) / 2));
-end
-
-function tau = LocalError(t0, h, u_t0)
+function tau = LocalError(t, h, u, sol)
 % Returns tao(t_i, h) local error of approximation u for
 % PendulumTrueSolution
 %
 % Parameters
-% t0 = t_i
+% t = time values to evaluate
 % h = stepsize
-% u_t0 = approximation value u_i
+% u = approximation results
+% sol = function handle to PendulumTrueSolution()
+
     global g
     global l
-    global TrueSolution
+    global x0
 
-    next = TrueSolution(t0 + h, u_t0, l, g);
-    % First row of next contains y(t0 + h)
-    y_t1 = next(1,:);
+    tau = [];
+    y = sol(t, x0, l, g);
 
-    increment = dgl(t0, TrueSolution(t0, u_t0, l, g));
-    % Second row of increment contains f(t0,y(t0))
-    f_t0 = increment(2,:);
+    for i = 1:length(t)-1
+        % Where index 0 = t_i
+        % Where index 1 = t_i + h
+        t0 = t(i);
+        u0 = u(1,i);
 
-    tau = (y_t1 - u_t0)/h - f_t0;
+        y0 = y(:,i);
+        y1 = y(1,i+1);
+
+        f = dgl(t0, y0);
+        f0 = f(2);
+
+        tau = [tau, (y1 - u0)/h - f0];
+    end
+
+
 end
