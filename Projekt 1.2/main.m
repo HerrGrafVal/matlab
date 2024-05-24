@@ -18,12 +18,13 @@ x0 = [phi0; phi_dot0];
 
 % --------------------------------------------------------------------------
 
+close all;
 figure()
 
 % Create and label subplot for global error e(t)
 e_time = subplot(3,1,1);
 title('Mathematisches Pendel: Globaler Fehler \"uber der Zeit', "Interpreter", "latex");
-xlabel("$t/s$", "Interpreter", "latex");
+xlabel("t in s", "Interpreter", "latex");
 ylabel("$log_{10}(e(t))$", "Interpreter", "latex");
 lgd = legend();
 set(lgd, "Interpreter", "latex");
@@ -40,7 +41,7 @@ hold(e_max, "on");
 % Create and label subplot for local error 
 e_loc = subplot(3,1,3);
 title('Lokaler Fehler \"uber der Zeit', "Interpreter", "latex");
-xlabel("$t/s$", "Interpreter", "latex");
+xlabel("t in s", "Interpreter", "latex");
 ylabel("$\tau$(t)", "Interpreter", "latex");
 lgd = legend();
 set(lgd, "Interpreter", "latex");
@@ -68,18 +69,9 @@ for i = h
     [tspan, z] = SimulationEuler(Vektorfeld, tspan, x0);
 
     % Calculate global error
-    if index == 1
-        % PendulumTrueSolution() doesn't work for t = [0, 1]
-        % Instead only the first and last value of PendulumTrueSolution
-        % with tspan = 0:0.1:1 are being used
-        x_with_sufficient_stepsize = TrueSolution(0:0.1:1, x0, l, g);
-        phi_with_current_stepsize = [x_with_sufficient_stepsize(1,1), x_with_sufficient_stepsize(1,end)];
-        e = abs(phi_with_current_stepsize - z(1,:));
-    else 
-        x_with_current_stepsize = TrueSolution(tspan, x0, l, g);
-        phi_with_current_stepsize = x_with_current_stepsize(1,:);
-        e = abs(phi_with_current_stepsize - z(1,:));
-    end    
+    x_with_current_stepsize = TrueSolution(tspan, x0, l, g);
+    phi_with_current_stepsize = x_with_current_stepsize(1,:);
+    e = abs(phi_with_current_stepsize - z(1,:));   
 
     % Calculate local error
     tau = LocalError(tspan,stepsize,z,TrueSolution);
@@ -94,27 +86,17 @@ for i = h
         plot(tspan, log10(e), "DisplayName", "e(t) Schrittweite " + i{2})
     end
 
-    % Note: By changing line 149 to: 
-    % tau = [0];
-    % And changing line 152 to:
-    % for i = 1:length(t)
-    % You can remove the following if/else statement and instead call:
-    % plot(tspan, tau, "DisplayName", "$\tau$(t) Schrittweite " + i{2})
-    % In all iterations, but since tau(0,h) = 0 for all h
-    % We prefer to render local errors as follows
-
     % Plot local error over time
     axes(e_loc);
     if index == 1
-        plot(tspan(2:end), tau, "x", "DisplayName", "$\tau$(t) Schrittweite " + i{2})
+        plot(tspan(1:end), tau, "x", "DisplayName", "$\tau$(t) Schrittweite " + i{2})
     else
-        plot(tspan(2:end), tau, "DisplayName", "$\tau$(t) Schrittweite " + i{2})
+        plot(tspan(1:end), tau, "DisplayName", "$\tau$(t) Schrittweite " + i{2})
     end
 
     % Save maximum global error
     h{3,index} = max(e);
     index = index + 1;
-
 end
 
 % --------------------------------------------------------------------------
@@ -133,7 +115,7 @@ function x_dot = dgl(t,x)
 end
 
 function tau = LocalError(t, h, u, sol)
-% Returns tao(t_i, h) local error of approximation u for
+% Returns tau(t_i, h) local error of approximation u for
 % PendulumTrueSolution
 %
 % Parameters
@@ -147,9 +129,10 @@ function tau = LocalError(t, h, u, sol)
     global x0
 
     tau = [];
-    y = sol(t, x0, l, g);
+    % In order to calculate local error for t_max we need to include y(t_max + h)
+    y = sol([t, t(end)+h], x0, l, g);
 
-    for i = 1:length(t)-1
+    for i = 1:length(t)
         % Where index 0 = t_i
         % Where index 1 = t_i + h
         t0 = t(i);
@@ -163,6 +146,4 @@ function tau = LocalError(t, h, u, sol)
 
         tau = [tau, (y1 - u0)/h - f0];
     end
-
-
 end

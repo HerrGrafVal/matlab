@@ -4,7 +4,7 @@ global l
 g = 9.81;
 l = 1;
 
-USE_CACHED_ANALYTICAL_SOLUTION = true;
+USE_CACHED_ANALYTICAL_SOLUTION = true; % See lines 58-62
 
 % Stepsizes to use in approximation
 h = [{1; "1 m"}, {10^-1; "$10^{-1}$ m"}, {10^-2; "$10^{-2}$ m"}, {10^-3; "$10^{-3}$ m"}, {10^-4; "$10^{-4}$ m"}, {10^-5; "$10^{-5}$ m"}];
@@ -55,8 +55,9 @@ for i = h
     plot(t,z(2,:),"DisplayName","$\dot{\varphi}$(t) Schrittweite " + i{2})
 end
 
-
-% Computing the analytical solution with PendulumTrueSolution() can take long
+% This task was completed before PendulumTrueSolution.p was available using
+% a custom function "PendulumTrueSolution" based on https://de.wikipedia.org/wiki/Mathematisches_Pendel#Exakte_Lösung
+% Computing the analytical solution with PendulumTrueSolution() would take long
 % for small stepsizes. Unless changing parameters t0, tf, minimum stepsize, l or g results stay
 % the same. Saving and reading them from a file saves resources.
 if USE_CACHED_ANALYTICAL_SOLUTION
