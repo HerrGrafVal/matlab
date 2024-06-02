@@ -20,7 +20,7 @@ function [t, u] = SimulationHeunForward(Vektorfeld, tspan, y0)
     for i = 2:length(tspan)
         % Approximate
         t1 = t0 + h;
-        l1 = u0 + h*f(t0, u0);
+        l1 = u0 + h * f(t0, u0);
         u(:,i) = u0 + 0.5 * h * (f(t0, u0) + f(t1, l1));
 
         % Setup for next iteration
