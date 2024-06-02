@@ -150,9 +150,9 @@ for method = methods
 
     % Annotate linear function
     text = "$log_{10}(e)$ = " + num2str(e_of_h_coefficients(1)) + " $\cdot$ $log_{10}(h)$ + " + num2str(e_of_h_coefficients(2) + " ");
-    arrow_x = [-1.75, -1.5];
-    arrow_y = [0, polyval(e_of_h_coefficients, -1.5)]
-    anno = annotation("textarrow", "String", text, "HeadStyle", "none", "Interpreter", "latex");
+    arrow_x = [-1.5, -1.5];
+    arrow_y = [0, polyval(e_of_h_coefficients, -1.5)];
+    anno = annotation("textarrow", "String", text, "HeadStyle", "deltoid", "HeadLength", 5, "HeadWidth", 5, "Interpreter", "latex");
     anno.Parent = method{3};
     anno.X = arrow_x;
     anno.Y = arrow_y;
