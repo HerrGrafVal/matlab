@@ -26,11 +26,8 @@ x0 = [phi0; phi_dot0];
 
 % --------------------------------------------------------------------------
 
-% Using cache for PendulumTrueSolution to prevent multiple executions of
-% the same calculation (as smaller stepsizes often include bigger ones)
-TrueSolution = memoize(@PendulumTrueSolution);
 t = t0:h{1,1}:tf;
-sol = TrueSolution(t, x0, l, g);
+sol = PendulumTrueSolution(t, x0, l, g);
 
 % --------------------------------------------------------------------------
 
@@ -106,7 +103,7 @@ for i = h
     tspan = t0:stepsize:tf;
 
     % Calculate true solution with current stepsize
-    x_with_current_stepsize = TrueSolution(tspan, x0, l, g);
+    x_with_current_stepsize = PendulumTrueSolution(tspan, x0, l, g);
     phi_with_current_stepsize = x_with_current_stepsize(1,:);
     
     subindex = 3;
