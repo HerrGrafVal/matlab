@@ -4,6 +4,10 @@ global l
 g = 9.81;
 l = 1;
 
+% Option to keep figure with simulation results
+PLOT_APPROXIMATION = false;
+STEPSIZES_TO_PLOT = [13,10,8];
+
 % Stepsizes to use in approximation
 h_vec = exp(linspace(log(10^-4), log(10^1), 20));
 h = cell(5, length(h_vec));
@@ -11,10 +15,6 @@ for i = 1:length(h_vec)
     h{1, i} = h_vec(i);
     h{2, i} = num2str(h_vec(i));
 end
-
-% Option to keep figure with simulation results
-PLOT_APPROXIMATION = false;
-STEPSIZES_TO_PLOT = [13,10,8];
 
 % Describe IVP
 Vektorfeld = @dgl;
@@ -66,17 +66,17 @@ err = figure();
 % Create and title subplot for SimulationHeun error
 err_heun = subplot(3,1,1);
 title('Maximaler Fehler pro Schrittweite f\"ur Verfahren von Heun', "Interpreter", "latex");
-ylabel("$max_{t}|e_{Heun}(h)|$", "Interpreter", "latex");
+ylabel("$log_{10}$ $max_{t}$ $|e_{Heun}(h)|$", "Interpreter", "latex");
 
 % Create and title subplot for SimulationCollatz error
 err_collatz = subplot(3,1,2);
 title('Maximaler Fehler pro Schrittweite f\"ur Verfahren von Collatz', "Interpreter", "latex");
-ylabel("$max_{t}|e_{Collatz}(h)|$", "Interpreter", "latex");
+ylabel("$log_{10}$ $max_{t}$ $|e_{Collatz}(h)|$", "Interpreter", "latex");
 
 % Create and title subplot for SimulationHeun error
 err_rk4 = subplot(3,1,3);
 title('Maximaler Fehler pro Schrittweite f\"ur RK4 Verfahren', "Interpreter", "latex");
-ylabel("$max_{t}|e_{RK4}(h)|$", "Interpreter", "latex");
+ylabel("$log_{10}$ $max_{t}$ $|e_{RK4}(h)|$", "Interpreter", "latex");
 
 % Finish labeling
 for ax = [err_heun, err_collatz, err_rk4]
@@ -84,6 +84,7 @@ for ax = [err_heun, err_collatz, err_rk4]
     xlabel("$log_{10}(h)$", "Interpreter", "latex");
     lgd = legend();
     set(lgd, "Interpreter", "latex");
+    set(gca, "xdir", "reverse")
     hold(ax, "on");
 end
 
